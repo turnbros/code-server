@@ -4,7 +4,7 @@ import { CODE_SERVER_ADDRESS, PASSWORD } from "../utils/constants"
 describe("login", () => {
   beforeEach(async () => {
     await jestPlaywright.resetBrowser()
-    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "domcontentloaded" })
+    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
   })
 
   it("should be able to login", async () => {
@@ -14,7 +14,7 @@ describe("login", () => {
     await page.click(".submit")
     // For some reason, it wasn't waiting for the click and navigation before checking
     // so adding a timeout ensures that we allow the editor time to load
-    await page.waitForTimeout(1000)
+    await page.waitForLoadState("networkidle")
     // See the editor
     const codeServerEditor = await page.isVisible(".monaco-workbench")
     expect(codeServerEditor).toBeTruthy()

@@ -7,7 +7,7 @@ describe("Open Help > About", () => {
     // so we don't have to logged in
     const storageState = JSON.parse(STORAGE) || {}
     await jestPlaywright.resetContext({ storageState })
-    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "domcontentloaded" })
+    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
   })
 
   it("should see a 'Help' then 'About' button in the Application Menu that opens a dialog", async () => {

@@ -9,7 +9,7 @@ describe("globalSetup", () => {
     // so we don't have to logged in
     const storageState = JSON.parse(STORAGE) || {}
     await jestPlaywright.resetContext({ storageState })
-    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "domcontentloaded" })
+    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
   })
 
   it("should keep us logged in if we don't reset the browser", async () => {

@@ -4,7 +4,7 @@ import { CODE_SERVER_ADDRESS, PASSWORD } from "../utils/constants"
 describe("logout", () => {
   beforeEach(async () => {
     await jestPlaywright.resetBrowser()
-    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "domcontentloaded" })
+    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
   })
 
   it("should be able login and logout", async () => {
@@ -12,8 +12,7 @@ describe("logout", () => {
     await page.fill(".password", PASSWORD)
     // Click the submit button and login
     await page.click(".submit")
-    // Allow time to navigate
-    await page.waitForTimeout(1000)
+    await page.waitForLoadState("networkidle")
     // See the editor
     const codeServerEditor = await page.isVisible(".monaco-workbench")
     expect(codeServerEditor).toBeTruthy()
@@ -28,8 +27,8 @@ describe("logout", () => {
     await page.hover(logoutButton)
 
     await page.click(logoutButton)
-    // it takes a couple seconds to navigate
-    await page.waitForTimeout(2000)
+    // it takes a couple seconds for url to change
+    await page.waitForLoadState("networkidle")
     const currentUrl = page.url()
     expect(currentUrl).toBe(`${CODE_SERVER_ADDRESS}/login`)
   })
