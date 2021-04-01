@@ -3,11 +3,11 @@ import { CODE_SERVER_ADDRESS, PASSWORD } from "../utils/constants"
 
 describe("logout", () => {
   beforeEach(async () => {
-    await jestPlaywright.resetContext()
+    await jestPlaywright.resetBrowser()
+    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "domcontentloaded" })
   })
 
   it("should be able login and logout", async () => {
-    await page.goto(CODE_SERVER_ADDRESS)
     // Type in password
     await page.fill(".password", PASSWORD)
     // Click the submit button and login
