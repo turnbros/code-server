@@ -58,7 +58,7 @@ curl() {
 # https://developer.github.com/v3/actions/workflow-runs/#list-workflow-runs
 get_artifacts_url() {
   local artifacts_url
-  local workflow_runs_url="https://api.github.com/repos/cdr/code-server/actions/workflows/ci.yaml/runs?status=success&event=pull_request"
+  local workflow_runs_url="https://api.github.com/repos/turnbros/code-server/actions/workflows/ci.yaml/runs?status=success"
   # For releases, we look for run based on the branch name v$code_server_version
   # example: v3.9.3
   local version_branch="v$VERSION"
