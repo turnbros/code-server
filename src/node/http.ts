@@ -1,14 +1,26 @@
 import { field, logger } from "@coder/logger"
 import * as express from "express"
 import * as expressCore from "express-serve-static-core"
+import * as http from "http"
+import * as net from "net"
+import path from "path"
 import qs from "qs"
-import safeCompare from "safe-compare"
+import { Disposable } from "../common/emitter"
 import { HttpCode, HttpError } from "../common/http"
-import { normalize, Options } from "../common/util"
+import { normalize } from "../common/util"
 import { AuthType, DefaultedArgs } from "./cli"
-import { commit, rootPath } from "./constants"
+import { version as codeServerVersion } from "./constants"
 import { Heart } from "./heart"
-import { hash } from "./util"
+import { getPasswordMethod, IsCookieValidArgs, isCookieValid, sanitizeString, escapeHtml, escapeJSON } from "./util"
+
+/**
+ * Base options included on every page.
+ */
+export interface ClientConfiguration {
+  codeServerVersion: string
+  base: string
+  csStaticBase: string
+}
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -20,6 +32,16 @@ declare global {
   }
 }
 
+export const createClientConfiguration = (req: express.Request): ClientConfiguration => {
+  const base = relativeRoot(req)
+
+  return {
+    base,
+    csStaticBase: normalize(path.posix.join(base, "_static/")),
+    codeServerVersion,
+  }
+}
+
 /**
  * Replace common variable strings in HTML templates.
  */
@@ -28,25 +50,28 @@ export const replaceTemplates = <T extends object>(
   content: string,
   extraOpts?: Omit<T, "base" | "csStaticBase" | "logLevel">,
 ): string => {
-  const base = relativeRoot(req)
-  const options: Options = {
-    base,
-    csStaticBase: base + "/static/" + commit + rootPath,
-    logLevel: logger.level,
+  const serverOptions: ClientConfiguration = {
+    ...createClientConfiguration(req),
     ...extraOpts,
   }
+
   return content
-    .replace(/{{TO}}/g, (typeof req.query.to === "string" && req.query.to) || "/")
-    .replace(/{{BASE}}/g, options.base)
-    .replace(/{{CS_STATIC_BASE}}/g, options.csStaticBase)
-    .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(options)}'`)
+    .replace(/{{TO}}/g, (typeof req.query.to === "string" && escapeHtml(req.query.to)) || "/")
+    .replace(/{{BASE}}/g, serverOptions.base)
+    .replace(/{{CS_STATIC_BASE}}/g, serverOptions.csStaticBase)
+    .replace("{{OPTIONS}}", () => escapeJSON(serverOptions))
 }
 
 /**
  * Throw an error if not authorized. Call `next` if provided.
  */
-export const ensureAuthenticated = (req: express.Request, _?: express.Response, next?: express.NextFunction): void => {
-  if (!authenticated(req)) {
+export const ensureAuthenticated = async (
+  req: express.Request,
+  _?: express.Response,
+  next?: express.NextFunction,
+): Promise<void> => {
+  const isAuthenticated = await authenticated(req)
+  if (!isAuthenticated) {
     throw new HttpError("Unauthorized", HttpCode.Unauthorized)
   }
   if (next) {
@@ -57,20 +82,27 @@ export const ensureAuthenticated = (req: express.Request, _?: express.Response, 
 /**
  * Return true if authenticated via cookies.
  */
-export const authenticated = (req: express.Request): boolean => {
+export const authenticated = async (req: express.Request): Promise<boolean> => {
   switch (req.args.auth) {
-    case AuthType.None:
+    case AuthType.None: {
       return true
-    case AuthType.Password:
+    }
+    case AuthType.Password: {
       // The password is stored in the cookie after being hashed.
-      return !!(
-        req.cookies.key &&
-        (req.args["hashed-password"]
-          ? safeCompare(req.cookies.key, req.args["hashed-password"])
-          : req.args.password && safeCompare(req.cookies.key, hash(req.args.password)))
-      )
-    default:
+      const hashedPasswordFromArgs = req.args["hashed-password"]
+      const passwordMethod = getPasswordMethod(hashedPasswordFromArgs)
+      const isCookieValidArgs: IsCookieValidArgs = {
+        passwordMethod,
+        cookieKey: sanitizeString(req.cookies.key),
+        passwordFromArgs: req.args.password || "",
+        hashedPasswordFromArgs: req.args["hashed-password"],
+      }
+
+      return await isCookieValid(isCookieValidArgs)
+    }
+    default: {
       throw new Error(`Unsupported auth type ${req.args.auth}`)
+    }
   }
 }
 
@@ -89,7 +121,8 @@ export const relativeRoot = (req: express.Request): string => {
 }
 
 /**
- * Redirect relatively to `/${to}`. Query variables will be preserved.
+ * Redirect relatively to `/${to}`. Query variables on the current URI will be preserved.
+ * `to` should be a simple path without any query parameters
  * `override` will merge with the existing query (use `undefined` to unset).
  */
 export const redirect = (
@@ -157,4 +190,54 @@ export const getCookieDomain = (host: string, proxyDomains: string[]): string | 
 
   logger.debug("got cookie doman", field("host", host))
   return host || undefined
+}
+
+/**
+ * Return a function capable of fully disposing an HTTP server.
+ */
+export function disposer(server: http.Server): Disposable["dispose"] {
+  const sockets = new Set<net.Socket>()
+  let cleanupTimeout: undefined | NodeJS.Timeout
+
+  server.on("connection", (socket) => {
+    sockets.add(socket)
+
+    socket.on("close", () => {
+      sockets.delete(socket)
+
+      if (cleanupTimeout && sockets.size === 0) {
+        clearTimeout(cleanupTimeout)
+        cleanupTimeout = undefined
+      }
+    })
+  })
+
+  return () => {
+    return new Promise<void>((resolve, reject) => {
+      // The whole reason we need this disposer is because close will not
+      // actually close anything; it only prevents future connections then waits
+      // until everything is closed.
+      server.close((err) => {
+        if (err) {
+          return reject(err)
+        }
+
+        resolve()
+      })
+
+      // If there are sockets remaining we might need to force close them or
+      // this promise might never resolve.
+      if (sockets.size > 0) {
+        // Give sockets a chance to close up shop.
+        cleanupTimeout = setTimeout(() => {
+          cleanupTimeout = undefined
+
+          for (const socket of sockets.values()) {
+            console.warn("a socket was left hanging")
+            socket.destroy()
+          }
+        }, 1000)
+      }
+    })
+  }
 }
