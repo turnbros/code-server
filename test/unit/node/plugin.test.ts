@@ -42,8 +42,6 @@ describe("plugin", () => {
         usingEnvHashedPassword: false,
         "extensions-dir": "",
         "user-data-dir": "",
-        workspace: "",
-        folder: "",
       }
       next()
     }
@@ -71,7 +69,7 @@ describe("plugin", () => {
     expect(body).toStrictEqual([
       {
         name: "Test App",
-        version: "4.0.0",
+        version: "4.0.1",
 
         description: "This app does XYZ.",
         iconPath: "/test-plugin/test-app/icon.svg",

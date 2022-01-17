@@ -1,7 +1,7 @@
 {
   "name": "code-server",
   "license": "MIT",
-  "version": "3.12.0",
+  "version": "4.0.1",
   "description": "Run VS Code on a remote server.",
   "homepage": "https://github.com/cdr/code-server",
   "bugs": {
@@ -52,15 +52,14 @@
     "@typescript-eslint/parser": "^5.0.0",
     "audit-ci": "^5.0.0",
     "codecov": "^3.8.3",
-    "del": "^6.0.0",
     "doctoc": "^2.0.0",
     "eslint": "^7.7.0",
     "eslint-config-prettier": "^8.1.0",
-    "eslint-import-resolver-alias": "^1.1.2",
+    "eslint-import-resolver-typescript": "^2.5.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-prettier": "^4.0.0",
     "prettier": "^2.2.1",
-    "prettier-plugin-sh": "^0.7.1",
+    "prettier-plugin-sh": "^0.8.0",
     "shellcheck": "^1.0.0",
     "stylelint": "^13.0.0",
     "stylelint-config-recommended": "^5.0.0",
@@ -78,7 +77,8 @@
     "vfile-message": "^2.0.2",
     "tar": "^6.1.9",
     "path-parse": "^1.0.7",
-    "vm2": "^3.9.4"
+    "vm2": "^3.9.4",
+    "follow-redirects": "^1.14.7"
   },
   "dependencies": {
     "@coder/logger": "1.1.16",
@@ -94,8 +94,7 @@
     "limiter": "^1.1.5",
     "pem": "^1.14.2",
     "proxy-agent": "^5.0.0",
-    "proxy-from-env": "^1.1.0",
-    "qs": "6.10.1",
+    "qs": "6.10.3",
     "rotating-file-stream": "^3.0.0",
     "safe-buffer": "^5.1.1",
     "safe-compare": "^1.1.4",
@@ -156,10 +155,12 @@
       "<rootDir>/release-standalone",
       "<rootDir>/release-npm-package",
       "<rootDir>/release-gcp",
-      "<rootDir>/release-images"
+      "<rootDir>/release-images",
+      "<rootDir>/vendor"
     ],
     "moduleNameMapper": {
       "^.+\\.(css|less)$": "<rootDir>/test/utils/cssStub.ts"
-    }
+    },
+    "globalSetup": "<rootDir>/test/utils/globalUnitSetup.ts"
   }
 }

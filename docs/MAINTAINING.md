@@ -19,6 +19,7 @@
     - [Docker](#docker)
     - [Homebrew](#homebrew)
     - [npm](#npm)
+- [Syncing with Upstream VS Code](#syncing-with-upstream-vs-code)
 - [Testing](#testing)
 - [Documentation](#documentation)
   - [Troubleshooting](#troubleshooting)
@@ -36,7 +37,7 @@ Current maintainers:
 - @TeffenEllis
 - @jsjoeio
 
-Occassionally, other Coder employees may step in time to time to assist with code-server.
+Occasionally, other Coder employees may step in time to time to assist with code-server.
 
 ### Onboarding
 
@@ -126,8 +127,7 @@ the issue.
 
 ### Merge strategies
 
-For most things, we recommend the **squash and merge** strategy. If you're
-updating `lib/vscode`, we suggest using the **rebase and merge** strategy. There
+For most things, we recommend the **squash and merge** strategy. There
 may be times where **creating a merge commit** makes sense as well. Use your
 best judgment. If you're unsure, you can always discuss in the PR with the team.
 
@@ -202,7 +202,7 @@ This is currently automated with the release process.
 
 We publish code-server on Homebrew [here](https://github.com/Homebrew/homebrew-core/blob/master/Formula/code-server.rb).
 
-This is currently automated with the release process (but may fail occassionally). If it does, run this locally:
+This is currently automated with the release process (but may fail occasionally). If it does, run this locally:
 
 ```shell
 # Replace VERSION with version
@@ -215,11 +215,23 @@ We publish code-server as a npm package [here](https://www.npmjs.com/package/cod
 
 This is currently automated with the release process.
 
+## Syncing with Upstream VS Code
+
+The VS Code portion of code-server lives under [`cdr/vscode`](https://github.com/cdr/vscode). To update VS Code for code-server, follow these steps:
+
+1. `git checkout -b vscode-update` - Create a new branch locally based off `main`
+2. `git fetch upstream` - Fetch upstream (VS Code)'s latest `main` branch
+3. `git merge upstream/main` - Merge it locally
+   1. If there are merge conflicts, fix them locally
+4. Open a PR merging your branch (`vscode-update`) into `main` and add the code-server review team
+
+Ideally, our fork stays as close to upstream as possible. See the differences between our fork and upstream [here](https://github.com/microsoft/vscode/compare/main...cdr:main).
+
 ## Testing
 
 Our testing structure is laid out under our [Contributing docs](https://coder.com/docs/code-server/latest/CONTRIBUTING#test).
 
-We hope to eventually hit 100% test converage with our unit tests, and maybe one day our scripts (coverage not tracked currently).
+We hope to eventually hit 100% test coverage with our unit tests, and maybe one day our scripts (coverage not tracked currently).
 
 If you're ever looking to add more tests, here are a few ways to get started:
 
