@@ -1,5 +1,6 @@
 import { field, logger } from "@coder/logger"
 import * as express from "express"
+import { RequestContext } from "express-openid-connect"
 import * as expressCore from "express-serve-static-core"
 import * as http from "http"
 import * as net from "net"
@@ -31,6 +32,7 @@ declare global {
     export interface Request {
       args: DefaultedArgs
       heart: Heart
+      oidc: RequestContext
       settings: SettingsProvider<CoderSettings>
       updater: UpdateProvider
     }
@@ -89,9 +91,12 @@ export const ensureAuthenticated = async (
  */
 export const authenticated = async (req: express.Request): Promise<boolean> => {
   switch (req.args.auth) {
+    // NO authentication used...
     case AuthType.None: {
       return true
     }
+
+    // BASIC authentication used...
     case AuthType.Password: {
       // The password is stored in the cookie after being hashed.
       const hashedPasswordFromArgs = req.args["hashed-password"]
@@ -104,6 +109,41 @@ export const authenticated = async (req: express.Request): Promise<boolean> => {
       }
 
       return await isCookieValid(isCookieValidArgs)
+    }
+
+    // OiDC authentication used...
+    case AuthType.Openid: {
+      if (req.oidc.isAuthenticated()) {
+        logger.debug("User authenticated with OpenID Connect", field("user", req.oidc.user))
+
+        // Check to see if a group claim was specified.
+        // If there was no group claim specified the user will be considered authorized.
+        if (!req.args["openid-group-claim"]) {
+          return true
+        }
+
+        // With the user authenticated we need to check the group claims to make sure they're authorized.
+        for (const key in req.oidc.idTokenClaims) {
+          const claims = <string[]>req.oidc.idTokenClaims[key]
+          if (key === req.args["openid-group-claim"] && req.args["openid-group-claim"].value) {
+            for (const value in claims) {
+              if (req.args["openid-user-group"] === claims[value]) {
+                logger.debug("User authorized", field("user", req.oidc.user))
+                return true
+              }
+            }
+          }
+        }
+
+        // Throw an error informing the user that they're unauthorized.
+        logger.debug("User not authorized", field("user", req.oidc.user))
+        throw new HttpError("Unauthorized", HttpCode.Unauthorized)
+      }
+
+      // Returning false means the user isn't authenticated.
+      // This should trigger a redirect so the user can get authenticated.
+      logger.debug("User not authenticated using OpenID Connect", field("user", req.oidc.user))
+      return false
     }
     default: {
       throw new Error(`Unsupported auth type ${req.args.auth}`)
