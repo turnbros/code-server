@@ -57,6 +57,7 @@ export interface UserProvidedArgs {
   enable?: string[]
   help?: boolean
   host?: string
+  locale?: string
   port?: number
   json?: boolean
   log?: LogLevel
@@ -104,9 +105,9 @@ interface Option<T> {
   description?: string
 
   /**
-   * If marked as beta, the option is marked as beta in help.
+   * If marked as deprecated, the option is marked as deprecated in help.
    */
-  beta?: boolean
+  deprecated?: boolean
 }
 
 type OptionType<T> = T extends boolean
@@ -163,6 +164,7 @@ const options: Options<Required<UserProvidedArgs>> = {
   enable: { type: "string[]" },
   help: { type: "boolean", short: "h", description: "Show this output." },
   json: { type: "boolean" },
+  locale: { type: "string" }, // The preferred way to set the locale is via the UI.
   open: { type: "boolean", description: "Open in browser on startup. Does not work remotely." },
 
   "bind-addr": {
@@ -230,7 +232,7 @@ const options: Options<Required<UserProvidedArgs>> = {
       https://hostname-username.cdr.co at which you can easily access your code-server instance.
       Authorization is done via GitHub.
     `,
-    beta: true,
+    deprecated: true,
   },
 }
 
@@ -253,7 +255,7 @@ export const optionDescriptions = (): string[] => {
         .map((line, i) => {
           line = line.trim()
           if (i === 0) {
-            return " ".repeat(widths.long - k.length) + (v.beta ? "(beta) " : "") + line
+            return " ".repeat(widths.long - k.length) + (v.deprecated ? "(deprecated) " : "") + line
           }
           return " ".repeat(widths.long + widths.short + 6) + line
         })
@@ -405,7 +407,10 @@ export const parse = (
     throw new Error("--cert-key is missing")
   }
 
-  logger.debug(() => ["parsed command line", field("args", { ...args, password: undefined })])
+  logger.debug(() => [
+    `parsed ${opts?.configFile ? "config" : "command line"}`,
+    field("args", { ...args, password: undefined }),
+  ])
 
   return args
 }
@@ -430,8 +435,6 @@ export interface DefaultedArgs extends ConfigArgs {
   "user-data-dir": string
   /* Positional arguments. */
   _: []
-  folder: string
-  workspace: string
 }
 
 /**
@@ -539,25 +542,8 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
     args._ = []
   }
 
-  let workspace = ""
-  let folder = ""
-  if (args._.length) {
-    const lastEntry = path.resolve(process.cwd(), args._[args._.length - 1])
-    const entryIsFile = await isFile(lastEntry)
-
-    if (entryIsFile && path.extname(lastEntry) === ".code-workspace") {
-      workspace = lastEntry
-      args._.pop()
-    } else if (!entryIsFile) {
-      folder = lastEntry
-      args._.pop()
-    }
-  }
-
   return {
     ...args,
-    workspace,
-    folder,
     usingEnvPassword,
     usingEnvHashedPassword,
   } as DefaultedArgs // TODO: Technically no guarantee this is fulfilled.
@@ -759,4 +745,35 @@ export const shouldOpenInExistingInstance = async (args: UserProvidedArgs): Prom
   }
 
   return undefined
+}
+
+/**
+ * Convert our arguments to VS Code server arguments.
+ */
+export const toVsCodeArgs = async (args: DefaultedArgs): Promise<CodeServerLib.ServerParsedArgs> => {
+  let workspace = ""
+  let folder = ""
+  if (args._.length) {
+    const lastEntry = path.resolve(args._[args._.length - 1])
+    const entryIsFile = await isFile(lastEntry)
+    if (entryIsFile && path.extname(lastEntry) === ".code-workspace") {
+      workspace = lastEntry
+    } else if (!entryIsFile) {
+      folder = lastEntry
+    }
+    // Otherwise it is a regular file.  Spawning VS Code with a file is not yet
+    // supported but it can be done separately after code-server spawns.
+  }
+
+  return {
+    "connection-token": "0000",
+    ...args,
+    workspace,
+    folder,
+    "accept-server-license-terms": true,
+    /** Type casting. */
+    help: !!args.help,
+    version: !!args.version,
+    port: args.port?.toString(),
+  }
 }

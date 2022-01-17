@@ -1,17 +1,14 @@
 import { Router } from "express"
-import { getCookieDomain, redirect } from "../http"
-import { Cookie } from "./login"
+import { CookieKeys } from "../../common/http"
+import { getCookieOptions, redirect } from "../http"
+import { sanitizeString } from "../util"
 
 export const router = Router()
 
-router.get("/", async (req, res) => {
+router.get<{}, undefined, undefined, { base?: string; to?: string }>("/", async (req, res) => {
   // Must use the *identical* properties used to set the cookie.
-  res.clearCookie(Cookie.Key, {
-    domain: getCookieDomain(req.headers.host || "", req.args["proxy-domain"]),
-    path: req.query.base || "/",
-    sameSite: "lax",
-  })
+  res.clearCookie(CookieKeys.Session, getCookieOptions(req))
 
-  const to = (typeof req.query.to === "string" && req.query.to) || "/"
-  return redirect(req, res, to, { to: undefined, base: undefined })
+  const to = sanitizeString(req.query.to) || "/"
+  return redirect(req, res, to, { to: undefined, base: undefined, href: undefined })
 })

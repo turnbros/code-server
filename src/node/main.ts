@@ -1,11 +1,11 @@
 import { field, logger } from "@coder/logger"
-import * as os from "os"
 import http from "http"
+import * as os from "os"
 import path from "path"
 import { Disposable } from "../common/emitter"
 import { plural } from "../common/util"
 import { createApp, ensureAddress } from "./app"
-import { AuthType, DefaultedArgs, Feature, UserProvidedArgs } from "./cli"
+import { AuthType, DefaultedArgs, Feature, toVsCodeArgs, UserProvidedArgs } from "./cli"
 import { coderCloudBind } from "./coder_cloud"
 import { commit, version } from "./constants"
 import { register } from "./routes"
@@ -35,11 +35,7 @@ export const runVsCodeCli = async (args: DefaultedArgs): Promise<void> => {
   const spawnCli = await loadAMDModule<CodeServerLib.SpawnCli>("vs/server/remoteExtensionHostAgent", "spawnCli")
 
   try {
-    await spawnCli({
-      ...args,
-      // For some reason VS Code takes the port as a string.
-      port: typeof args.port !== "undefined" ? args.port.toString() : undefined,
-    })
+    await spawnCli(await toVsCodeArgs(args))
   } catch (error: any) {
     logger.error("Got error from VS Code", error)
   }

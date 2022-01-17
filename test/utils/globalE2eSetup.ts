@@ -1,12 +1,13 @@
 import { Cookie } from "playwright"
+import { CookieKeys } from "../../src/common/http"
 import { hash } from "../../src/node/util"
 import { PASSWORD, workspaceDir } from "./constants"
 import { clean } from "./helpers"
 import * as wtfnode from "./wtfnode"
 
 /**
- * Perform workspace cleanup and authenticate. This should be set up to run
- * before our tests execute.
+ * Perform workspace cleanup and authenticate. This should be ran before e2e
+ * tests execute.
  */
 export default async function () {
   console.log("\n🚨 Running Global Setup for Playwright End-to-End Tests")
@@ -27,7 +28,7 @@ export default async function () {
       domain: "localhost",
       expires: -1,
       httpOnly: false,
-      name: "key",
+      name: CookieKeys.Session,
       path: "/",
       sameSite: "Lax",
       secure: false,
