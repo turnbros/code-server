@@ -68,7 +68,7 @@ export const createApp = async (args: DefaultedArgs): Promise<App> => {
     : http.createServer(router)
 
   const dispose = disposer(server)
-  
+
   await listen(server, args)
 
   const wsRouter = express()

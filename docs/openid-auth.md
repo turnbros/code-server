@@ -116,7 +116,7 @@ openid-secret: "{prerequisites_openid-secret_value}"
 
 1. Once logged into the Keycloak instance, navigate to the **Clients** page by clicking the **Clients** link in the navigation menu on the left side of the page.
 2. Begin the client creation process by clicking the **Create** button located in the top right corner of the client list.
-3. Fill out the client creation fields then click **Save** - Client ID**: This is the value that will later be populated in `openid-client-id`. This value is entirely up the the user or process creating the client. - **Client Protocol**: This value should be set to **openid-connect** - **Root URL**: This field should be populated with the code-server base URL.
+3. Fill out the client creation fields then click **Save** - Client ID**: This is the value that will later be populated in `openid-client-id`. This value is entirely up the the user or process creating the client. - **Client Protocol**: This value should be set to **openid-connect** - **Root URL\*\*: This field should be populated with the code-server base URL.
    <kbd>
    <img src="assets/openid-connect/keycloak/create-client.png" />
    </kbd>

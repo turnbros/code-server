@@ -140,7 +140,7 @@ A step-by-step example of how you might do this is:
 
 ```shell
 # Uninstall
-npm uninstall -g --unsafe-perm code-server > /dev/null 2>&1
+npm uninstall -g --unsafe-perm code-server >/dev/null 2>&1
 
 # Install with logging
 npm install --loglevel verbose -g --unsafe-perm code-server

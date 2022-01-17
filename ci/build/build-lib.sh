@@ -14,15 +14,15 @@ get_nfpm_arch() {
   local ARCH="${2:-}"
 
   case "$ARCH" in
-    armv7l)
-      if [ "$PKG_FORMAT" = "deb" ]; then
-        echo armhf
-      elif [ "$PKG_FORMAT" = "rpm" ]; then
-        echo armhfp
-      fi
-      ;;
-    *)
-      echo "$ARCH"
-      ;;
+  armv7l)
+    if [ "$PKG_FORMAT" = "deb" ]; then
+      echo armhf
+    elif [ "$PKG_FORMAT" = "rpm" ]; then
+      echo armhfp
+    fi
+    ;;
+  *)
+    echo "$ARCH"
+    ;;
   esac
 }

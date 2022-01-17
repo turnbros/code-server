@@ -91,7 +91,6 @@ export const ensureAuthenticated = async (
  */
 export const authenticated = async (req: express.Request): Promise<boolean> => {
   switch (req.args.auth) {
-    
     // NO authentication used...
     case AuthType.None: {
       return true
