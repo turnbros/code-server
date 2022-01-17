@@ -17,7 +17,7 @@ main() {
   # we use the same version it's using so we instead run a script with yarn that
   # will print the path to node.
   local node_path
-  node_path="$(yarn -s node <<<'console.info(process.execPath)')"
+  node_path="$(yarn -s node <<< 'console.info(process.execPath)')"
 
   mkdir -p "$RELEASE_PATH/bin"
   mkdir -p "$RELEASE_PATH/lib"

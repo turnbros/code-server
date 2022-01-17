@@ -14,7 +14,7 @@ main() {
   fi
 
   if [[ ${CI-} ]]; then
-    echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >~/.npmrc
+    echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
   fi
 
   download_artifact npm-package ./release-npm-package
@@ -23,7 +23,7 @@ main() {
 
   # Ignore symlink when publishing npm package
   # See: https://github.com/cdr/code-server/pull/3935
-  echo "node_modules.asar" >release/.npmignore
+  echo "node_modules.asar" > release/.npmignore
   yarn publish --non-interactive release
 }
 

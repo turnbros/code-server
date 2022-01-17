@@ -10,11 +10,11 @@ describe("error page is rendered for text/html requests", () => {
       message: ";>hello<script>alert(1)</script>",
     }
     const req = createRequest()
-    const res = ({
+    const res = {
       status: jest.fn().mockReturnValue(this),
       send: jest.fn().mockReturnValue(this),
       set: jest.fn().mockReturnValue(this),
-    } as unknown) as express.Response
+    } as unknown as express.Response
 
     await errorHandler(err, req, res, next)
     expect(res.status).toHaveBeenCalledWith(404)
@@ -23,7 +23,7 @@ describe("error page is rendered for text/html requests", () => {
 })
 
 function createRequest(): express.Request {
-  return ({
+  return {
     headers: {
       accept: ["text/html"],
     },
@@ -31,5 +31,5 @@ function createRequest(): express.Request {
     query: {
       to: "test",
     },
-  } as unknown) as express.Request
+  } as unknown as express.Request
 }

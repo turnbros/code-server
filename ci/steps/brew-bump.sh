@@ -42,7 +42,7 @@ main() {
   git remote add upstream https://github.com/Homebrew/homebrew-core.git
 
   # Make sure the git remote step is successful
-  if ! git config remote.upstream.url >/dev/null; then
+  if ! git config remote.upstream.url > /dev/null; then
     echo "git remote add upstream failed."
     echo "Could not find upstream in list of remotes."
     git remote -v
@@ -64,7 +64,7 @@ main() {
   PATH_TO_GIT_ASKPASS="$HOME/git-askpass.sh"
   # Source: https://serverfault.com/a/912788
   # shellcheck disable=SC2016,SC2028
-  echo 'echo $HOMEBREW_GITHUB_API_TOKEN' >"$PATH_TO_ASKPASS"
+  echo 'echo $HOMEBREW_GITHUB_API_TOKEN' > "$PATH_TO_ASKPASS"
 
   # Make sure the git-askpass.sh file creation is successful
   if file_exists "$PATH_TO_GIT_ASKPASS"; then

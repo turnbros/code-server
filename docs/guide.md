@@ -93,7 +93,7 @@ we recommend using another method, such as [Let's Encrypt](#let-encrypt) instead
    # continuously. Be sure to add `mutagen daemon start` to your ~/.bashrc to
    # start the mutagen daemon when you open a shell.
    
-   mutagen forward create --name=code-server tcp:127.0.0.1:8080 <instance-ip >:tcp:127.0.0.1:8080
+   mutagen forward create --name=code-server tcp:127.0.0.1:8080 < instance-ip > :tcp:127.0.0.1:8080
    ```
 
 6. Optional, but highly recommended: add the following to `~/.ssh/config` so
