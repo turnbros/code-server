@@ -1,13 +1,13 @@
 ---
 name: Feature request
-about: Suggest an idea
-title: ""
-labels: feature
-assignees: ""
+about: Suggest an idea to improve code-server
+labels: enhancement
 ---
 
-<!--
-Please search for existing issues before filing.
+## What is your suggestion?
 
-Please describe the feature as clearly as possible!
--->
+## Why do you want this feature?
+
+## Are there any workarounds to get this functionality today?
+
+## Are you interested in submitting a PR for this?

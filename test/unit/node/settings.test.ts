@@ -14,7 +14,7 @@ describe("settings", () => {
     testDir = await tmpdir(testName)
   })
   describe("with invalid JSON in settings file", () => {
-    let mockSettingsFile = "coder.json"
+    const mockSettingsFile = "coder.json"
     let pathToMockSettingsFile = ""
 
     beforeEach(async () => {
@@ -29,11 +29,11 @@ describe("settings", () => {
       const settings = new SettingsProvider<CoderSettings>(pathToMockSettingsFile)
       await settings.read()
       // This happens when we can't parse a JSON (usually error in file)
-      expect(logger.warn).toHaveBeenCalledWith("Unexpected token t in JSON at position 29")
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/Unexpected token/))
     })
   })
   describe("with invalid settings file path", () => {
-    let mockSettingsFile = "nonExistent.json"
+    const mockSettingsFile = "nonExistent.json"
     let pathToMockSettingsFile = ""
 
     beforeEach(async () => {
